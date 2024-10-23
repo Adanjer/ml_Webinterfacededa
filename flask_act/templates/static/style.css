@@ -1,0 +1,121 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 30px;
+    background-color: #f0f2f5;
+    color: #333;
+}
+
+.container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 40px; /* Increased gap for better spacing */
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.form-container, .response-container {
+    width: 45%;
+}
+
+.form-container {
+    background-color: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.response-container {
+    background-color: #fff;
+    padding: 25px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: none; /* Hidden initially */
+}
+
+.response-container.active {
+    display: block; /* Visible when active */
+}
+
+label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #555;
+}
+
+.label-input-group {
+    margin-bottom: 20px;
+}
+
+input[type="text"], select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+    margin-top: 5px;
+    font-size: 14px;
+    transition: border-color 0.3s ease;
+}
+
+input[type="text"]:focus, select:focus {
+    border-color: #4CAF50;
+    outline: none;
+}
+
+.classifier {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.classifier label {
+    margin-left: 10px;
+    font-weight: normal;
+}
+
+.classifier input[type="radio"] {
+    margin-right: 10px;
+    transform: scale(1.2); /* Larger radio buttons */
+}
+
+button {
+    background-color: #a1a5a1;
+    color: white;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+#response-receipt p {
+    font-size: 16px;
+    line-height: 1.6;
+    margin: 10px 0;
+}
+
+#response-receipt {
+    border-top: 1px solid #ccc;
+    padding-top: 15px;
+    margin-top: 20px;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .form-container, .response-container {
+        width: 100%;
+    }
+}
