@@ -5,75 +5,57 @@ import pandas as pd
 
 app = Flask(__name__)
 
-# Load the KNN and Naive Bayes models once when the app starts
-knn_model = load("model/knn_model.pkl")
-naive_bayes_model = load("model/naive_bayes_model.pkl")
-decision_tree_model = load("model/decision_tree_model.pkl") # Load the Naive Bayes model
-print("Loaded KNN model type:", type(knn_model))
-print("Loaded Naive Bayes model type:", type(naive_bayes_model))
-print("Loaded Decision tree model type:", type(decision_tree_model))
+# Load the models during app initialization
+models = {
+    'KNN': load("model/knn_model.pkl"),
+    'Naive Bayes': load("model/naive_bayes_model.pkl"),
+    'Decision Tree': load("model/decision_tree_model.pkl")
+}
+
+print("Models loaded successfully:", {name: type(model) for name, model in models.items()})
 
 @app.route("/")
-def home():
+def index():
     return render_template('index.html')
 
 @app.route("/classify", methods=['POST'])
-def classify():
+def classify_data():
     try:
-        # Get the classifier choice from the form
-        classifier = request.form.get('classifier')  # Get the selected classifier
-        print("Selected classifier:", classifier)  # Print for debugging
+        # Retrieve the classifier selected by the user
+        chosen_model = request.form.get('classifier')
+        print(f"Classifier selected: {chosen_model}")
 
-        # Access user inputs from the form
-        clump = float(request.form.get('Clump_thickness', 0))
-        uniformity_size = float(request.form.get('Uniformity_Cell_Size', 0))
-        uniformity_shape = float(request.form.get('Uniformity_Cell_Shape', 0))
-        adhesion = float(request.form.get('Marginal_Adhesion', 0))
-        epithelial = float(request.form.get('Single_Epithelial_Cell_Size', 0))
-        chromatin = float(request.form.get('Bland_Chromatin', 0))
-        nucleoli = float(request.form.get('Normal_Nucleoli', 0))
-        mitoses = float(request.form.get('Mitoses', 0))
+        # Extract and parse input features from the form
+        feature_names = [
+            'Clump_thickness', 'Uniformity_Cell_Size', 'Uniformity_Cell_Shape', 
+            'Marginal_Adhesion', 'Single_Epithelial_Cell_Size', 
+            'Bland_Chromatin', 'Normal_Nucleoli', 'Mitoses'
+        ]
+        
+        # Convert the form data into a numerical list
+        input_features = [float(request.form.get(feature, 0)) for feature in feature_names]
+        input_df = pd.DataFrame([input_features], columns=feature_names)
 
-        # Prepare input data for prediction
-        input_data = pd.DataFrame([[clump, uniformity_size, uniformity_shape, adhesion, epithelial, chromatin, nucleoli, mitoses]],
-                                  columns=['Clump_thickness', 'Uniformity_Cell_Size', 'Uniformity_Cell_Shape', 
-                                           'Marginal_Adhesion', 'Single_Epithelial_Cell_Size', 'Bland_Chromatin', 
-                                           'Normal_Nucleoli', 'Mitoses'])
+        # Check the chosen model and predict accordingly
+        if chosen_model not in models:
+            chosen_model = 'KNN'  # Default to KNN if no valid classifier is chosen
+        prediction = models[chosen_model].predict(input_df)
 
-        # Make the prediction based on the selected classifier
-        if classifier == 'Naive Bayes':
-            prediction = naive_bayes_model.predict(input_data)
-        elif classifier == 'Nearest Neighbor':  # Default to KNN
-            prediction = knn_model.predict(input_data)
-        else:
-            prediction = decision_tree_model.predict(input_data)
+        # Interpret the prediction result
+        result = "Benign" if prediction[0] == 2 else "Malignant" if prediction[0] == 4 else "Unknown"
 
-        # Determine the result based on the prediction
-        if prediction[0] == 2:
-            result = "Benign"
-        elif prediction[0] == 4:
-            result = "Malignant"
-        else:
-            result = "Unknown"
-
-        # Collect user inputs for response
-        user_input = {
-            'Clump_thickness': clump,
-            'Uniformity_Cell_Size': uniformity_size,
-            'Uniformity_Cell_Shape': uniformity_shape,
-            'Marginal_Adhesion': adhesion,
-            'Single_Epithelial_Cell_Size': epithelial,
-            'Bland_Chromatin': chromatin,
-            'Normal_Nucleoli': nucleoli,
-            'Mitoses': mitoses,
+        # Format the response with the inputs and prediction
+        response = {
+            'prediction': result,
+            'classifier': chosen_model,
+            'user_input': dict(zip(feature_names, input_features))
         }
 
-        # Return the prediction, classifier used, and user input
-        return jsonify({'prediction': result, 'classifier': classifier, 'user_input': user_input})
+        return jsonify(response)
 
-    except Exception as e:
-        print("Error:", e)  # Print the error for debugging
-        return jsonify({'error': str(e)}), 400
-    
+    except Exception as error:
+        print(f"Error occurred: {error}")
+        return jsonify({'error': str(error)}), 400
+
 if __name__ == "__main__":
     app.run(debug=True)
